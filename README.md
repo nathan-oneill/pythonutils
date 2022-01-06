@@ -1,4 +1,4 @@
-# Python Utils
+# `pythonutils`
 A collection of useful functions that I've developed (or found - with appropriate references), will eventually be unittested, and use semi-regularly. This also serves as a way for me to test out github automation.
 
 ## Included sub-modules
@@ -9,17 +9,14 @@ A collection of useful functions that I've developed (or found - with appropriat
 
 
 # Installation
-For now, see [this](https://stackoverflow.com/questions/16584552/how-to-state-in-requirements-txt-a-direct-github-source) Stack Overflow page.
-[This](https://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path) may also be of use if not installing directly, instead cloning the repo directly.
-
-pip direct installation: (recommended adding to a virtual environment instead of installing globally)
+To install directly from Github use (see [here](https://stackoverflow.com/questions/16584552/how-to-state-in-requirements-txt-a-direct-github-source) or [here](https://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path) for more info): 
 
 ```pip install git+git://github.com/nathan-oneill/pythonutils@main#egg=pythonutils-nathan-oneill```
 
-It can then be imported as `pythonutils`
+If the git repo is cloned locally first, then you can use:
 
-Local installation (if the git repo is downloaded first):
 ```pip install file:////path/to/local/repo#egg=pythonutils-nathan-oneill```
+
 
 # Documentation Guide
 ## Do
@@ -41,3 +38,4 @@ Local installation (if the git repo is downloaded first):
 - Continuous-integration unittests
 - Continuous-integration code coverage with [codecov](https://github.com/apps/codecov)
 - Continuous-integration pylint?
+-  Replace installation `@main` with `/versions/...` once versions are started being tagged.
