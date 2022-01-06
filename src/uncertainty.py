@@ -1,14 +1,20 @@
 """Module for performing calculations involving experimentally gathered values.
 
 Important classes:
-- CoherentUncertainty : value+-uncertainty objects, assuming the uncertainties are coherent
-- IncoherentUncertainty : value+-uncertainty objects, not assuming the uncertainties are coherent
-- FileHandler : load in .csv files with appropriate format to perform repeated calculations for many trials
+- CoherentUncertainty : value+-uncertainty objects, assuming the uncertainties
+  are coherent
+- IncoherentUncertainty : value+-uncertainty objects, not assuming the
+  uncertainties are coherent
+- FileHandler : load in .csv files with appropriate format to perform repeated
+  calculations for many trials
 
 General definitions (I really need to standardise these):
-- "measurement": value+-unc      (Sometimes represented by an uppercase and lowercase of a letter: Aa, or A+-a)
-- "value": the numerical estimate of a measurement   (Represented by an uppercase letter: A)
-- "uncertainty": the uncertainty in the measurement  (Represented by a lowercase letter: a)
+- "measurement": value+-unc      (Sometimes represented by an uppercase and
+  lowercase of a letter: Aa, or A+-a)
+- "value": the numerical estimate of a measurement (Represented by an uppercase
+  letter: A)
+- "uncertainty": the uncertainty in the measuremen (Represented by a lowercase
+  letter: a)
 
 Referennces:
 - 
@@ -16,28 +22,25 @@ Referennces:
 Things to look at:
 - https://realpython.com/introduction-to-python-generators/
 - https://www.python.org/dev/peps/pep-0396/ -- Specifying __version__
-- PEP 563: Postponed Evaluation of Annotations -- type hints (hint of 
-  parameter classes to a function, and also of its return value)
+- PEP 563: Postponed Evaluation of Annotations -- type hints (hint of parameter
+  classes to a function, and also of its return value)
 
 Planned features:
 - 
 
 Miscealleneous:
-- What I could do (if anyone who doesn't have python, or even knows how to 
-  code wants this) is make a javascript version where the html page they 
-  open has instructions on how to open the console, then examples on how to 
-  do the calculations
+- What I could do (if anyone who doesn't have python, or even knows how to code
+  wants this) is make a javascript version where the html page they open has
+  instructions on how to open the console, then examples on how to do the 
+  calculations
 - note: to start a python file in Visual Studio use shift+alt+F5
 
 Improvements (general code efficiency/style)
-- look at making Uncertainty (and StringExpression) objects hashable 
-  (greatly increases efficiency of lookups in dictionaries)
-  https://docs.python.org/3/library/numbers.html#notes-for-type-implementors
 - in CoherentUncertainty raise a warning if it detects incoherent uncertainties
 - standardise how errors are raised!!!
 
-- Use Sphinx style docstrings (like numpy)
-- **Rename e.g. CoherentUncertainty to CoherentMeasurement to keep things standardised**
+- **Rename e.g. CoherentUncertainty to CoherentMeasurement to keep things
+  standardised**
 """
 
 __version__ = '0.2.2'
@@ -45,7 +48,7 @@ __author__ = "Nathan O'Neill"
 
 
 
-####################################################### MODULES #######################################################
+################################### MODULES ###################################
 import math
 import os
 import assorted as asd
@@ -55,19 +58,22 @@ import csv
 
 
 
-####################################################### CLASSES #######################################################
+################################### CLASSES ###################################
 class _Uncertainty_Prototype:
-	"""Base class for uncertainties as approximated by 'Propagation of Uncertainty'.
+	"""Base class for uncertainties as approximated by 'Propagation of
+	Uncertainty'.
 
 	Notes
 	-----
-	`__myattribute` attributes should be removed from this documentation. If they're necessary, they should be
-	protected properties instead of just mentioning these!!!
+	`__myattribute` attributes should be removed from this documentation. If
+	they're necessary, they should be protected properties instead of just 
+	mentioning these!!!
 
 	Attributes
 	----------
 	__prefixes : dict
-		A dictionary of `prefix:powerOfTen` mappings. (This probably shouldn't be included).
+		A dictionary of `prefix:powerOfTen` mappings. (This probably shouldn't
+		be included).
 	__autoOutputPrefix : bool
 		Automatically display values with prefixes or not.
 	
@@ -84,7 +90,8 @@ class _Uncertainty_Prototype:
 		Parameters
 		----------
 		prefix : str, int, float
-			The prefix to be converted (`str`). If `int` or `float` `prefixToScale` will return `prefix`
+			The prefix to be converted (`str`). If `int` or `float`,
+			`prefixToScale` will return `prefix`
 		
 		Returns
 		-------
@@ -106,11 +113,11 @@ class _Uncertainty_Prototype:
 	def addPrefix(cls, prefix, scale):
 		"""Add a custom prefix.
 
-		NOT IMPLEMENTED. Add a custom <prefix> that is interpreted numerically 
+		NOT IMPLEMENTED. Add a custom <prefix> that is interpreted numerically
 		as <scale>. must be a positive number that is a multiple of 10.
 
-		Thinking more on this, I believe there should be no restrictions (other than being real) that should be placed
-		on `scale`
+		Thinking more on this, I believe there should be no restrictions (other
+		than being real) that should be placed on `scale`.
 
 		Parameters
 		----------
@@ -152,7 +159,7 @@ class _Uncertainty_Prototype:
 	
 	@classmethod
 	def isValidPrefix(cls, prefix):
-		""" Return if a prefix is valid.
+		"""Return if a prefix is valid.
 
 		Parameters
 		----------
@@ -187,10 +194,7 @@ class _Uncertainty_Prototype:
 		----------
 		bool_ : bool
 			If `True`, automatically display uncercainties with prefixes.
-		
-		@param {class} cls: the Uncertainty class
-		@param {bool} bool_: automatically convert displayed uncertainty to have
-	           prefix if True
+
 		"""
 		if bool_ in [True, False]: cls.__autoOutputPrefix = bool_
 		else: raise ValueError("bool_ must be a bool, not type '{}'".format(type(bool_)))
@@ -232,9 +236,10 @@ class _Uncertainty_Prototype:
 	
 	## CONSTRUCTOR ##
 	def __init__(self, val, unc = 0, scale = 1):
-		"""Initialise an uncertainty object: val+-unc * scale
+		"""Initialise an uncertainty object: `val+-unc * scale`
 
-		Note: scale can be a number or any metric unit prefix ('p', 'n', 'u', 'm', '', 'k', 'M', 'G', 'T')
+		Note: scale can be a number or any metric unit prefix ('p', 'n', 'u',
+		'm', '', 'k', 'M', 'G', 'T')
 		Note: this assumes <unc> is an ABSOLUTE uncertainty
 
 		Parameters
@@ -244,7 +249,8 @@ class _Uncertainty_Prototype:
 		unc : :obj:`float`, optional
 			The measurement's associated uncertainty. Default `0`.
 		scale : :obj:`float`, :obj:`str`, optional
-			The scale of both `value` and `uncertainty`. Can either be a number of a valid prefix. Default `1`.
+			The scale of both `value` and `uncertainty`. Can either be a number
+			of a valid prefix. Default `1`.
 
 		"""
 		if isinstance(val, type(self)) and unc==0 and scale==1: #only allowed if unc and scale are default values
@@ -265,7 +271,8 @@ class _Uncertainty_Prototype:
 	def __eq__(self, b):
 		"""Equality check. 
 		
-		Assumes that if b is an Uncertainty class, i.e. it has numerical b.unc and b.val attributes.
+		Assumes that if `b` is an Uncertainty class, i.e. it has numerical
+		`b.unc`	and `b.val` attributes.
 
 		"""
 		try:
@@ -307,8 +314,8 @@ class _Uncertainty_Prototype:
 	def findBestPrefix(self):
 		"""Find the best prefix to represent this measurement's value. 
 
-		That being the one gives the smallest number of significant 
-		figures above the decimal point (so long as there is at least one)
+		That being the one gives the smallest number of significant figures
+		above the decimal point (so long as there is at least one).
 
 		Returns
 		-------
@@ -345,7 +352,8 @@ class _Uncertainty_Prototype:
 		return self.unc / self.val
 
 	def maxVal(self):
-		"""Return the maximum value a measurement could take within the bounds of its uncertainty.
+		"""Return the maximum value a measurement could take within the bounds
+		of its uncertainty.
 
 		Useful for e.g. basing an uncertainty off of a range of values, which
 		has bounds which are themselves measurements:
@@ -361,7 +369,8 @@ class _Uncertainty_Prototype:
 		return self.val + self.unc
 
 	def minVal(self):
-		"""Return the minumum value a measurement could take within the bounds of its uncertainty.
+		"""Return the minumum value a measurement could take within the bounds
+		of its uncertainty.
 		
 		Returns
 		-------
@@ -371,7 +380,10 @@ class _Uncertainty_Prototype:
 
 
 	## TYPECASTING AND DISPLAYING ##
-	def __hash__(self): return hash((self.val, self.unc))
+	def __hash__(self): 
+		if self.unc == 0:
+			return hash(self.val)
+		return hash((self.val, self.unc))
 
 	def __bool__(self): return self.val != 0 or self.unc != 0
 
@@ -386,8 +398,8 @@ class _Uncertainty_Prototype:
 		return str(self.val) + " +- " + str(self.unc)
 
 	def reprWithPrefix(self, prefix=None):
-		"""Return a representation of the uncertainty object with the appropriate prefix to minimise unnecessary
-		displayed 0s
+		"""Return a representation of the uncertainty object with the
+		appropriate prefix to minimise unnecessary displayed 0s.
 
 		TODO: 
 		- There appears to be some unnecessary steps in the main 'else'
@@ -427,31 +439,36 @@ class _Uncertainty_Prototype:
 
 
 class CoherentUncertainty(_Uncertainty_Prototype):
-	"""Uncertainty class for values with ABSOLUTE uncertainties -> value +- uncertainty
+	"""Uncertainty class for values with ABSOLUTE uncertainties -> value +-
+	uncertainty
 	
 	(Coherent as in everything has the same sign)
 
 	Operations follow the following: let f(x,y) be a function, then the 
 	uncertainty of f(Aa,Bb) is 
-	               fx(A,B)*a + fy(A,B)*b
-
+		`fx(A,B)*a + fy(A,B)*b`
 
 	This allows for all basic arithmetic operations on uncertainty objects
 	(and between uncertainty objects and numbers, which are interpreted as
 	uncertainty objects with 0 uncertainty). The operations between two
 	uncertainty objects x=A+-a and y=B+-b are:
-	
-		x+y = (A+B) +- (a+b)
-		x-y = (A-B) +- (a+b)
-		x*y = (A*B) +- (A*B * (a/A + b/B))
-		x/y = (A/B) +- (A/B * (a/A + b/B))
-		x**y= (A**B) +- (A**B * (a*B/A + b*math.log(A))
-		unc.log(x,y) = math.log(A,B) +- (math.log(A,B) * (a/(A*math.log(A)) + b/(B*math.log(B))))
+		`x+y = (A+B) +- (a+b)`
+
+		`x-y = (A-B) +- (a+b)`
+
+		`x*y = (A*B) +- (A*B * (a/A + b/B))`
+
+		`x/y = (A/B) +- (A/B * (a/A + b/B))`
+
+		`x**y= (A**B) +- (A**B * (a*B/A + b*math.log(A))`
+
+		`unc.log(x,y) = math.log(A,B) +- (math.log(A,B) * (a/(A*math.log(A)) + b/(B*math.log(B))))`
 	
 	Attributes
 	----------
 	__suppress_IncoherenceMessages : bool
-		Suppress warnings about possible incorrect calculations. (This should be a property)
+		Suppress warnings about possible incorrect calculations. (This should
+		be a property)
 	
 	"""
 
@@ -462,8 +479,8 @@ class CoherentUncertainty(_Uncertainty_Prototype):
 	def suppress_IncoherenceMessages(cls, bool_ = None):
 		"""suppress the Incoherent Uncertainty warnings if True
 		
-		using bool_ = None retrieves __suppress_IncoherenceMessages,
-		otherwise, attempts to set __suppress_IncoherenceMessages
+		using `bool_ = None` retrieves `__suppress_IncoherenceMessages`,
+		otherwise, attempts to set `__suppress_IncoherenceMessages`.
 
 		Parameters
 		----------
@@ -480,10 +497,10 @@ class CoherentUncertainty(_Uncertainty_Prototype):
 
 	## CONSTRUCTOR ##
 	def __init__(self, val, unc = 0, scale = 1):
-		"""Initialise a CoherentUncertainty object: val+-unc * scale
+		"""Initialise a CoherentUncertainty object: `val+-unc * scale`
 		
 		Note: scale can be a number or any metric unit prefix ('p', 'n', 'u', 
-		      'm', '', 'k', 'M', 'G', 'T'), or a real number
+		'm', '', 'k', 'M', 'G', 'T'), or a real number
 
 		Parameters
 		----------
@@ -492,7 +509,8 @@ class CoherentUncertainty(_Uncertainty_Prototype):
 		unc : :obj:`float`, optional
 			The measurement's associated uncertainty. Default `0`.
 		scale : :obj:`float`, :obj:`str`, optional
-			The scale of both `value` and `uncertainty`. Can either be a number of a valid prefix. Default `1`.
+			The scale of both `value` and `uncertainty`. Can either be a number
+			of a valid prefix. Default `1`.
 
 		"""
 		super().__init__(val, unc, scale)
@@ -500,7 +518,7 @@ class CoherentUncertainty(_Uncertainty_Prototype):
 	## OPERATIONS ##
 	def __add__(self, other):
 		A, a = self.val, self.unc
-		if type(other) == type(self): #+++ isinstance(other, type(self)) possibly better, but not sure if wanted?
+		if type(other) == type(self): #TODO: isinstance(other, type(self)) possibly better, but not sure if wanted?
 			B, b = other.val, other.unc
 		elif isinstance(other, (int, float)):
 			B, b = other, 0
@@ -581,10 +599,10 @@ class CoherentUncertainty(_Uncertainty_Prototype):
 
 	def __rpow__(self, a):
 		B, b = self.val, self.unc
-		if type(other) == type(self):
-			A, a = other.val, other.unc
-		elif isinstance(other, (int, float)):
-			A, a = other, 0
+		if type(a) == type(self):
+			A, a = a.val, a.unc
+		elif isinstance(a, (int, float)):
+			A, a = a, 0
 		else:
 			return NotImplemented
 
@@ -609,7 +627,7 @@ class CoherentUncertaintyForced(_Uncertainty_Prototype):
 	"""
 	Operations follow the following: let f(x,y) be a function, then the 
 	uncertainty of f(Aa,Bb) is 
-	               abs(fx(A,B)*a) + abs(fy(A,B)*b)
+		`abs(fx(A,B)*a) + abs(fy(A,B)*b)`
 
 	"""
 
@@ -624,11 +642,12 @@ class IncoherentUncertainty(_Uncertainty_Prototype):
 
 	Operations follow the following: let f(x,y) be a function, then the 
 	uncertainty (actually standard error) of f(Aa,Bb) is 
-	           sqrt( (fx(A,B)*a)**2 + (fy(A,B)*b)**2) )
+		`sqrt( (fx(A,B)*a)**2 + (fy(A,B)*b)**2) )`
 
 	Supports operations: ** * / + -
 
 	(Also note that log() hasn't been adjusted to include this function)
+
 	"""
 
 	#def __init__(self, val, unc, scale):
@@ -747,10 +766,10 @@ class IncoherentUncertainty(_Uncertainty_Prototype):
 
 	def __rpow__(self, a):
 		B, b = self.val, self.unc
-		if type(other) == type(self):
-			A, a = other.val, other.unc
-		elif isinstance(other, (int, float)):
-			A, a = other, 0
+		if type(a) == type(self):
+			A, a = a.val, a.unc
+		elif isinstance(a, (int, float)):
+			A, a = a, 0
 		else:
 			return NotImplemented
 
@@ -774,28 +793,36 @@ class GeneralUncertainty(_Uncertainty_Prototype):
 	See "Factorio" exercise book for the idea on how this'll work
 
 	Assorted notes:
-	  - Use a try-except to avoid infinities/errors
-	  - Double check that the uncertainty gets swapped for subtraction (x-y 
-	    should be the same as x+(-y))'
-	  - It's worth noting that thinking about -1*x = -x is the basis for why
-	    the uncertainty gets flipped - as it's reflecting across the origin
+	- Use a try-except to avoid infinities/errors
+	- Double check that the uncertainty gets swapped for subtraction (x-y 
+	  should be the same as x+(-y))'
+	- It's worth noting that thinking about -1*x = -x is the basis for why
+	  the uncertainty gets flipped - as it's reflecting across the origin
 	
 	TODO:
-	  - Get the prototype to play nice (or just make this class independent)
-	  - make repr() sensible, at the moment it's "val +- (lower, upper)" which is visually confusing
-	  - multiply/divide could be done explicitly
+	- Get the prototype to play nice (or just make this class independent)
+	- make repr() sensible, at the moment it's "val +- (lower, upper)" which
+	  is visually confusing
+	- multiply/divide could be done explicitly
 
 	WARNINGS:
-	  - estimateUncertainty is not fullproof/trustworthy yet
+	- estimateUncertainty is not fullproof/trustworthy yet
 	"""
 
 	#CLASSMETHODS and STATICMETHODS
 	@classmethod
 	def _getOtherValUnc(cls, other):
-		"""Return a tuple (val, unc) for <value>"""
-		#See IncoherentUncertainty._getOther_ValueUnc for a little discussion on this function's implementation
-		#This should be put into the _Uncertainty_Prototype... hmm, perhaps not due to unc being a tuple not a number
-		#It would also be better to leave the interpretation of floats etc. up to __init__ to be standardised (& in one place)
+		"""Return a tuple (val, unc) for <value>
+		
+		Notes
+		-----
+		See IncoherentUncertainty._getOther_ValueUnc for a little discussion on
+		this function's implementation. This should be put into the 
+		`_Uncertainty_Prototype`... hmm, perhaps not due to unc being a tuple
+		not a number it would also be better to leave the interpretation of
+		floats etc. up to __init__ to be standardised (& in one place)
+		
+		"""
 		raise NotImplementedError("Legacy function")
 		if isinstance(other, cls):
 			B = other.val
@@ -808,34 +835,47 @@ class GeneralUncertainty(_Uncertainty_Prototype):
 		return (B,b)
 
 	@classmethod
-	def minimise(cls, f, start, domain, precision=5, test_domain_corners=True, useDynamicStepSize=True, *args, 
-				 **kwargs):
+	def minimise(cls, f, start, domain, precision=5, test_domain_corners=True,
+				 useDynamicStepSize=True, *args, **kwargs):
 		"""equivalently maximise -f"""
-		return -cls.maximise(lambda *x: -f(*x), start, domain, precision, test_domain_corners, 
-							 useDynamicStepSize, *args, **kwargs)
+		return -cls.maximise(
+			lambda *x: -f(*x),
+			start,
+			domain,
+			precision,
+			test_domain_corners,
+			useDynamicStepSize,
+			*args,
+			**kwargs
+		)
 
 	@classmethod
-	def maximise(cls, f, start, domain, precision=5, test_domain_corners=True, useDynamicStepSize=True, *args, 
-				 **kwargs):
-		"""Return the maximum value of function f(*params) over <domain> to <precision>
+	def maximise(cls, f, start, domain, precision=5, test_domain_corners=True,
+				 useDynamicStepSize=True, *args, **kwargs):
+		"""Return the maximum value of function `f(*params)` over `domain` to
+		`precision`
 
-		It might be more useful to return the values that give the max value! (NO, as multiple values might give the
-		same maximum! (eg. if an absolute value function of a plane -> a line of infinite values give the same max))
+		It might be more useful to return the values that give the max value!
+		(NO, as multiple values might give the same maximum! (eg. if an
+		absolute value function of a plane -> a line of infinite values give
+		the same max)).
 		
 		Parameters
 		----------
 		start : :obj:`tuple` of :obj:`float`
-			Tuple of starting values
+			Tuple of starting values.
 		domain : :obj:`tuple` of :obj:`tuple` of :obj:`float`
-			Tuple of tuples of domain to check
+			Tuple of tuples of domain to check.
 		precision : int
-			Number of decimal places below the most significant figure of each value is to be checked
+			Number of decimal places below the most significant figure of each
+			value is to be checked.
 		test_domain_corners : bool
-			if True, also tries starting at all 'corners' of the rectangular domain. (adds 2**len(domain) starting
-			points)
+			if True, also tries starting at all 'corners' of the rectangular
+			domain. (adds 2**len(domain) starting points)
 		useDynamicStepSize : bool
-			if True, this will start at a lower precision for each start value, decreasing how much each parameter can
-			change until the desired precision is reached.
+			if True, this will start at a lower precision for each start value,
+			decreasing how much each parameter can change until the desired
+			precision is reached.
 
 		Notes
 		-----
@@ -951,31 +991,38 @@ class GeneralUncertainty(_Uncertainty_Prototype):
 	def estimateUncertainty(cls, f, uncertaintyArgs, precision=5, 
 						    test_domain_corners=False, fullDomainCheck=False,
 							useDynamicStepSize=True, *args, **kwargs):
-		"""
-		Return the uncertainty object that results from passing the GeneralUncertainty
-		instances <uncertaintyArgs> through function <f>. Function will get called by:
-
-			f(*vals, *args, **kwargs)
-
+		"""Return the uncertainty object that results from passing the
+		`GeneralUncertainty` instances `uncertaintyArgs` through function `f`.
+		
+		Function will get called by:
+			`f(*vals, *args, **kwargs)`
 		where:
-			vals = [measurement.val for measurement in uncertaintyArgs]
+			`vals = [measurement.val for measurement in uncertaintyArgs]`
 
 		For now, this assumes that uncertaintyArgs is a tuple of GeneralUncertainty objects
 
-		@param {callable} f: function to estimate
-		@param {iterable<GeneralUncertainty>} uncertaintyArgs: iterable of the uncertainty 
-								objects that get passed to the function
-		@param {int} precision: number of decimal places below the most significant figure
-								of each value is to be checked
-		@param {bool} test_domain: if True, also tries starting at all 'corners' of
-								the rectangular domain. (adds 2**len(domain) starting
-								points) #Change this description
-		@param {bool} fullDomainCheck: if True, steps through the entire parameter space.
-								If False, will use vals as a starting point in a 'simplex search' (I think that's what I'm doing??)
-		@param {bool} useDynamicStepSize: if True, this will start at a lower precision for
-								each start value, decreasing how much each parameter can
-								change until the desired precision is reahed. (only used
-								if fullDomainCheck==False).
+		Parameters
+		----------
+		f : function
+			Function to estimate.
+		uncertaintyArgs : :obj:`list` of :obj:`GeneralUncertainty`
+			Iterable of the uncertainty objects that get passed to `f`.
+		precision : int
+			Number of decimal places below the most significant figure of each
+			value is to be checked.
+		test_domain : bool
+			If `True`, also tries starting at all 'corners' of the rectangular
+			domain. (Adds `2**len(domain)` starting points)
+		fullDomainCheck : bool
+			If `True`, steps through the entire parameter space. If `False`,
+			will use `vals` as a starting point in a 'simplex search' (I think
+			that's what I'm doing??)
+		useDynamicStepSize : bool
+			If `True`, this will start at a lower precision for each start
+			value, decreasing how much each parameter cane change until the
+			desired precision is reached. (Only used if 
+			`fullDomainCheck==False`)
+
 		"""
 		vals = []
 		uncertaintyArgs_limits = []
@@ -1023,8 +1070,9 @@ class GeneralUncertainty(_Uncertainty_Prototype):
 		
 		Has methods for supporting arbitrary functions
 
-		If <val> is of class 'GeneralUncertainty', then all other parameters will be ignored
-		and this constructor will return an idental copy of <val>.
+		If <val> is of class `GeneralUncertainty`, then all other parameters
+		will be ignored	and this constructor will return an idental copy of
+		`val`.
 
 		Parameters
 		----------
@@ -1128,19 +1176,20 @@ class GeneralUncertainty(_Uncertainty_Prototype):
 class FileHandler:
 	"""Handle files of uncertainty data
 
-	This version of FileHandler uses csv and stores data in pandas Dataframes, and returns the Dataframe
+	This version of FileHandler uses csv and stores data in pandas Dataframes,
+	and returns the Dataframe.
 
 	<inFilePath> must be the complete path (e.g. starting with C:/Users/ ...)
 
-		.csv formatted as:
+	.csv formatted as:
 		variable1,       scale1, varaible2,       scale2, variable3,       scale3, ...
 		   value1, uncertainty1,    value1, uncertainty1,    value1, uncertainty1, ... 
 		   value2, uncertainty2,    value2, uncertainty2,    value2, uncertainty2, ... 
 
 	IMPROVEMENTS:
-		- turn this into a wrapper for a DataFrame object - inherits all functions etc.
-		  from pd.DataFrame, but just acts on the .df attribute
-		  https://stackoverflow.com/questions/1443129/completely-wrap-an-object-in-python
+	- turn this into a wrapper for a DataFrame object - inherits all functions etc.
+	  from pd.DataFrame, but just acts on the .df attribute
+	  https://stackoverflow.com/questions/1443129/completely-wrap-an-object-in-python
 	"""
 
 	## CONSTRUCTOR ##
@@ -1153,20 +1202,21 @@ class FileHandler:
 	def load(cls, inFilePath, columnOffset = 0, rowOffset = 0, uncertaintyType = "Incoherent"):
 		"""Return the data. 
 		
-		This should also return an 'extra data' array that just 
-		contains all the unused stuff in the .csv file - that way you can write it 
-		back it. (just the headers - I had a better idea for extra cols)
+		This should also return an 'extra data' array that just contains all
+		the unused stuff in the .csv file - that way you can write it back it.
+		(just the headers - I had a better idea for extra cols)
 
 		Parameters
 		----------
 		inFilePath : str
 			FULL directory path to the csv file
 		columnOffset : int
-			Zero-based index of the column to start reading from (NOTE: this must include the variable headers)
+			Zero-based index of the column to start reading from (NOTE: this
+			must include the variable headers)
 		rowOffset : int
 			Zero-based index of the row to start reading from
 		uncertaintyType : str
-			"Incoherent" or "Coherent"
+			`"Incoherent"` or `"Coherent"`
 
 		Returns
 		-------
@@ -1185,7 +1235,7 @@ class FileHandler:
 		if not os.path.exists(inFilePath):
 			print("The specified file '{}' does not exist. This may be caused by using '\' instead of '/'".format(inFilePath))
 		if not isinstance(columnOffset, int):
-			raise TypeError("<columnStart> must be of type '{0}' not type '{1}'".format(int, type(ColumnOffset)))
+			raise TypeError("<columnStart> must be of type '{0}' not type '{1}'".format(int, type(columnOffset)))
 		if not isinstance(rowOffset, int):
 			raise TypeError("<columnStart> must be of type '{0}' not type '{1}'".format(int, type(rowOffset)))
 		if uncertaintyType not in ["Coherent", "Incoherent"]:
@@ -1225,16 +1275,30 @@ class FileHandler:
 
 	@staticmethod
 	def _prepareVariableLine(variables, lineNumber):
-		"""
-		Prepare the variables line in the file. 
-		NOTE: this can raise a ValueError if the variables have invalid characters
+		"""Prepare the variables line in the file. 
 
 		TODO:
-		  - update this to 0.2.2 (doesn't need to prepare for a StringExpression anymore)
+		- update this to 0.2.2 (doesn't need to prepare for a StringExpression anymore)
 
-		@param {str} variables : line for the variables, directly read from the file without adjustment
-		@param {int} lineNumber : line in the file, for error messages
-		@returns {list} : in the same order as in the file - ["variable", scale, "variable", scale,...]
+		Parameters
+		----------
+		variables : str
+			Line for the variables, directly read from the file without
+			adjustment.
+		lineNumber : int
+			Line in the file, for error messages.
+		
+		Returns
+		-------
+		list
+			In the same order as the file: `["variable", scale, "variable",
+			scale, ...]`
+
+		Raises
+		------
+		ValueError
+			If the variables have invalid characters.
+
 		"""
 		if len(variables) % 2 != 0:
 			raise ValueError("The variables line in the file must have 'variable, scale' pairs (ie 2 columns per variable)")
@@ -1262,14 +1326,27 @@ class FileHandler:
 
 	@staticmethod
 	def _prepareDataLine(row, variables, lineNumber, uncertaintyType):
-		"""
-		Prepare a row, assuming <lineVariables> is in the same order as read in. 
-		NOTE: this can raise a ValueError if there is some issue
+		"""Prepare a row, assuming <lineVariables> is in the same order as
+		read in. 
 
-		@param {str} row: row to prepare
-		@param {list<str>} variables: variables in the line, INCLUDING THE SCALE ("", a number, or one of Uncertainty.__prefixes.keys())
-		@param {int} lineNumber: number to display in any error message if specified
-		@return {list}
+		Parameters
+		----------
+		row : str
+			Row to prepare.
+		variables : :obj:`list` of :obj:`str`
+			Variables in the line, including the scale (`""`, a number, or one
+			of `Uncertainty.__prefixes.keys()`)
+		lineNumber : int
+			Line in the file, for error messages.
+
+		Returns
+		-------
+		list
+
+		Raises
+		------
+		ValueError
+
 		"""
 		if len(row) % 2 != 0:
 			raise ValueError("line {} does not have an even number of columns, i.e. there might be an uncertainty missing".format(lineNumber))
@@ -1296,16 +1373,19 @@ class FileHandler:
 
 	@staticmethod
 	def save(outFilePath, data, extra_info = None):
-		"""
-		Save the data to outFilePath.
+		"""Save the data to outFilePath.
 
-		 TODO: 
-			- more elegant solution is to just use the csv module for saving
-			  pandas is cool, but it isn't meant for this sort of thing
+		TODO: 
+		- more elegant solution is to just use the csv module for saving pandas
+		  is cool, but it isn't meant for this sort of thing.
 
-		@param {str} outFilePath
-		@param {pandas.DataFrame} data
-		@param {dict} extra_info : extra_info returned by FileHandler.load()
+		Parameters
+		----------
+		outFilePath : str
+		data : `pd.DataFrame`
+		extra_info : dict
+			`extra_info` returned by `FileHandler.load()`
+
 		"""
 		
 		# TYPE CHECKING
@@ -1342,32 +1422,22 @@ class FileHandler:
 
 
 
-## FUNCTIONS - mainly for internal use ##
-def findAll(p, s):
-	'''Yield all the positions of
-	the pattern p in the string s.'''
-	#https://stackoverflow.com/questions/4664850/how-to-find-all-occurrences-of-a-substring
-	#This isn't mine, but it demonstrates a very powerful object in python - generator objects!
-	#my addition: return [] instead if none found
-	
-	i = s.find(p)
-	if i == -1: return []
-	while i != -1:
-		yield i
-		i = s.find(p, i+1)
-
-
-
-
-## FUNCTIONS ##
+################################## FUNCTIONS ##################################
 def log(x, base = math.e):
-	"""
-	math.log() but also supports UncertaintyFull objects. Will return an UncertaintyFull object if the uncertainty of the returned value is non-zero
+	"""math.log() but also supports UncertaintyFull objects. 
+	
+	Will return an UncertaintyFull object if the uncertainty of the returned
+	value is non-zero.
 
-	be aware that this is only accurate for x around 1 (read Propagation of Uncertainty for why)
+	be aware that this is only accurate for x around 1 (read Propagation of
+	Uncertainty for why)
 
-	I'm going to do this in a less efficient, but more readable manner (compared to Uncertainty classes definition)
+	I'm going to do this in a less efficient, but more readable manner
+	(compared to Uncertainty classes definition).
+	
 	"""
+	raise NotImplementedError("Not completed/up-to-date")
+
 	if type(x) == IncoherentUncertainty or type(base) == IncoherentUncertainty:
 		raise NotImplementedError("log() does not currently work for IncoherentUncertainty objects. Try using CoherentUncertainty")
 	if type(x) == CoherentUncertainty:

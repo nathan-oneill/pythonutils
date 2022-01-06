@@ -4,6 +4,8 @@ A collection of useful functions that I've developed, will eventually be unittes
 ## Included sub-modules
 - `uncertainty` (`unc`)
 - `assorted`    (`asd`)
+- `builtinMethods` (`bm`)
+- `intmath`     (`intm`)
 
 
 # Installation
@@ -17,12 +19,12 @@ https://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-
 - Use `'` instead of `"` except when the string contains the `'` character
 - Align `=` for related variable assignments on adjacent lines
 - Leave 3 empty lines between 'sections' (indicated by a line of `#`), 2 between classes, and 1 between functions.
-- Use camelCase instead of underscore_case
+- Use camelCase instead of snake_case
 - End every function with `return`
 - Use `## SUBSECTION ##` to indicate subsections in classes, and `# SUBSECTION` to indicate subsections in functions
 - Sort functions alphabetically in each subsection/section (whichever is more specific)
 
-# Do not
+## Do not
 - go over 120 characters in a line
 
 

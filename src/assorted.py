@@ -1,9 +1,8 @@
-"""An assortment of both usable and not usable functions
-"""
+"""An assortment of both usable and not usable functions"""
 
 
 
-####################################################### MODULES #######################################################
+################################### MODULES ###################################
 import time
 import math
 import os
@@ -12,24 +11,33 @@ from types import FunctionType
 
 
 
-####################################################### CLASSES #######################################################
+################################## CLASSES ####################################
 class enumerate2:
-	"""
+	"""Enumerate with start, stop, step functionality.
+	
 	Equivalent to doing:
+		for (i, elem) in enumerate(iterable):
+			if (start <= i < stop and (i-start)%step==0): 
+				#
+				# Normal code here
+				#
 
-	for (i, elem) in enumerate(iterable):
-		if (start <= i < stop and (i-start)%step==0): 
-			#
-			# Normal code here
-			#
+	which actually turns out faster.
 
-	which actually turns out faster
 	"""
 
 	def __init__(self, iterable, start=0, stop=None, step=1):
-		"""
-		enumerate, equivalently, over iterable[start:stop:step]
-		(note that slice notation is not used, so is not required to be defined)
+		"""Enumerate, equivalently, over `iterable[start:stop:step]`
+
+		Note: slice notation is not used, so is not required to be defined
+
+		Parameters
+		----------
+		iterable : iterable
+		start : int
+		stop : int
+		step : int
+
 		"""
 		try: 
 			(e for e in iterable)
@@ -93,7 +101,10 @@ class enumerate2:
 		return
 	
 	def __iter2__(self):
-		"""A possibly more efficient approach. Unfortanetely, this isn't the place to raise StopIteration"""
+		"""A possibly more efficient approach. Unfortanetely, this isn't the
+		place to raise StopIteration
+		
+		"""
 		raise NotImplementedError()
 		if self.start < 0: 
 			start = self.start + len(self.iterable)
@@ -134,8 +145,8 @@ class enumerate2:
 
 	@staticmethod
 	def test(iterable, n, start=0, stop=None, step=1):
-		"""
-		Run a test comparing enumerate to enumerate2 over 2*n trials
+		"""Run a test comparing enumerate to enumerate2 over 2*n trials
+
 		It is advised to edit this function to make the enumerate for loop more efficient 
 		(remove unecessary checks depending on start, stop and step)
 		"""
@@ -177,50 +188,39 @@ class enumerate2:
 
 
 class multirange:
-	"""
-	for (i, j, ...) in multirange(start, stop, step):
-			<code to execute in for loop goes here>
+	"""Extend range() to iterate over a `tuple` of indexes.
 
-	Is equivalent to:
-	for i in range(start[0], stop[0], step[0]):
-		for j in range(start[1], stop[1], step[1]):
-			...
-				...
-				    <code to execute in for loop goes here>
-
-
-	WARNING: At present this is far less efficient than using many for 
-		     loops. It should only be used when the number of required
-		     for loops is not known.
+	WARNING: At present this is far less efficient than using many for loops.
+	It should only be used when the number of required for loops is not known.
 
     TODO: implement `__multirange_old` in CPython.
 	"""
 	
 	def __init__(self, start, stop=None, step=None):
-		"""
-		Create a multirange object, this will iterate over a set of indexes.
+		"""Create a `multirange` object to iterate over a set of indexes.
+
 		It will increment the final index until increasing by step takes it 
 		over its stop point, then will increment the prior index and return the
 		final index to its start value before continuing to iterate.
 
-		for (i, j, ...) in multirange(start, stop, step):
-			<code to execute in for loop goes here>
+			for (i, j, ...) in multirange(start, stop, step):
+				<code to execute in for loop goes here>
 
 		Is equivalent to:
-		for i in range(start[0], stop[0], step[0]):
-			for j in range(start[1], stop[1], step[1]):
-				...
-				   ...
-				      <code to execute in for loop goes here>
-
-
-		WARNING: At present this is far less efficient than using many for 
-		         loops. It should only be used when the number of required
-				 for loops is not known.
+			for i in range(start[0], stop[0], step[0]):
+				for j in range(start[1], stop[1], step[1]):
+					...
+						<code to execute in for loop goes here>
 		
-		@param {tuple<int>} start: tuple of indices to start at
-		@param {tuple<int>} stop: tuple of indices to stop before
-		@param {tuple<int>} step: tuple of indices to increment by
+		Parameters
+		----------
+		start : :obj:`tuple` of :obj:`int`
+			Tuple of indices to start at.
+		stop : :obj:`tuple` of :obj:`int`
+			Tuple of indices to stop before.
+		step : :obj:`tuple` of :obj:`int`
+			Tuple of indices to increment by.
+			
 		"""
 		
 		# TYPE CHECKING
@@ -272,7 +272,7 @@ class multirange:
 		ranges = [iter(range(sa,so,se)) for (sa,so,se) in zip(start,stop,step)]
 		try:
 			indexes = [next(sub_range) for sub_range in ranges] 
-		except StopIteration: # at least one range is invalid. Makes multirange() mimic behaviour of range() for invalid ranges
+		except StopIteration: # At least one range is invalid. Makes multirange() mimic behaviour of range() for invalid ranges
 			return
 		yield tuple(indexes)
 
@@ -293,47 +293,27 @@ class multirange:
 		return
 
 
-class __multirange2(multirange):
-	"""
-	The recursive solution may be along the lines of this.
-	But, this algorithm doesn't work/isn't finished
-	"""
 
-	def __iter__(self):
-		inds = list(self._start)
-		yield tuple(inds)
-		while True:
-			yield tuple(self.nextInds(inds, -1))
-
-	def nextInds(self, inds, i):
-		print(inds, i)
-		if i <= -len(inds): return None
-		for j in range(inds[i], self._stop[i], self._step[i]):
-			N = self.nextInds(inds, i-1)
-			print(N)
-			if N == None:
-				inds[i] = j
-			else:
-				inds[i-1] = self._start[i-1]
-				return N
 
 
 class iterOverIterables:
 	def __init__(self, *iters):
-		"""
-		Return an object that when iterated over in a for loop, iterates
+		"""Return an object that when iterated over in a for loop, iterates
 		over the sequence of iterables. Starting at the first, then when that
 		has no more items, iterates over the second one.
 
-		for elem in iterOverIterables(a,b,c):
-			<code>
-
-		Is equivalent to:
-		for iterable in [a,b,c]:
-			for elem in iterable:
+			for elem in iterOverIterables(a,b,c):
 				<code>
 
-		@param {*iterable} *iters : any number of iterable objects
+		Is equivalent to:
+			for iterable in [a,b,c]:
+				for elem in iterable:
+					<code>
+
+		Parameters
+		----------
+		*iters : :obj:`tuple` of iterable
+
 		"""
 		for iterable in iters:
 			if not isIterable(iterable):
@@ -377,7 +357,7 @@ class Wrapper(object):
 
 
 
-###################################################### FUNCTIONS ######################################################
+################################## FUNCTIONS ##################################
 def isFloatable(x, acceptNan=False, acceptInf=False):
 	"""Return True if `x` is floatable.
 	
@@ -496,7 +476,7 @@ def permuteOptions(listOfLists):
 	return
 
 def walkFiles(dir, callback):
-    """Walk the files in the directory, calling 'callback' on them.
+    """Walk the files in a directory, calling 'callback' on each file.
 
     Parameters
     ----------
@@ -505,6 +485,7 @@ def walkFiles(dir, callback):
     callback : FunctionType
         Used as `callback(filepath)` where each file's `filepath` is
         `os.path.join(dir, filepath_relative_to_dir)`.
+	
     """
     for root, dirs, files in os.walk(dir):
         for name in files:
@@ -513,7 +494,7 @@ def walkFiles(dir, callback):
 
 
 
-###################################################### DECORATORS #####################################################
+################################# DECORATORS ##################################
 def print_execution_time(func):
     """decorator, prints the time it takes for the function to execute
 	
@@ -562,6 +543,7 @@ def decorate_cls(*args):
 	-------
 	class
 		Not sure what this returns
+	
 	"""
 	class InnerWrapper(Wrapper):
 		def __init__(self, wrapped_cls):
@@ -577,93 +559,7 @@ def decorate_cls(*args):
 
 
 
-####################################### OLD & NON-FUNCTIONING PROTOTYPE FUNCTIONS ####################################
-def __isFloatable_old(string): 
-	"""Check if `string` is floatable
-
-	Check a string to see whether it can be converted into a float.
-	NOTE: this returns False for "NaN" and "Inf"
-	NOTE: this returns False for strings such as "1e10" which can be floated
-	
-	Parameters
-	----------
-	string : str
-		string to check
-
-	Returns
-	-------
-	bool
-		True if `string` can be converted, False if not.
-	
-	"""
-	raise DeprecationWarning("Inefficient method, see isFloatable() for the better version")
-	# (Upchurch, 2009) - Idea for splitting string, checking either side of decimal point
-	if string == "":
-		return False
-	
-	# Negative sign check
-	negIndex = string.find("-")
-	if negIndex != -1:
-		if string[:negIndex].lstrip() != "":
-			return False
-		if string.find("-", negIndex+1) != -1:
-			return False
-		string = string[negIndex+1:]
-
-	# Digits on either side of a '.'
-	part_list = string.split(".")
-	if len(part_list) > 2:
-		return False
-	for side in part_list:
-		if not side.isdigit():
-			return False
-	return True
-
-def __permuteOptions_new(iterOfIters):
-	"""Return a generator object for iterating through all possible permutations of an iterable of iterables
-		
-	iterOfIters is of the form:
-		[ value1, value2, value3, ...]
-	where
-		value1 = [option1, option2, ...]
-
-	This returns a generator object that iterates all possible lists of values, where the values can
-	be any of their respective options
-
-	Parameters
-	----------
-	iterOfIters : iterable
-		Iterable of iterables.
-	
-	Yields
-	------
-	list
-		a permutation of the given options
-	
-	"""
-	#I use a modified version in simpleUncertainty that only uses objects that have a len() attribute,
-	#That one is more efficient as it doesn't have to loop the first time
-	raise NotImplementedError("This does not work as intended - it requires indexing... What I need instead is a multienumerate()")
-	start = []
-	stop = []
-	if not isIterable(iterOfIters):
-		raise ValueError("<iterOfIters> must be iterable. An object of type '" + str(type(iterOfIters)) + "' is not.")
-	for options in iterOfIters:
-		start.append(0)
-		if not isIterable(options):
-			raise ValueError("each element of <iterOfIters> must be iterable. An object of type '" + str(type(options)) + "' is not.")
-		try:
-			stop.append(len(options))
-		except AttributeError:
-			length = 0
-			for elem in options: 
-				length += 1
-			stop.append(length)
-	for inds in multirange(start, stop):
-		raise NotImplementedError("This does not work as intended - it requires indexing... What I need instead is a multienumerate()")
-		yield [options[i] for (i,options) in zip(inds, listOfLists)]
-	return
-
+################### OLD & NON-FUNCTIONING PROTOTYPE FUNCTIONS #################
 class __multirange_old:
 	"""multirange equivalent to a sequence of for loops
 
@@ -795,3 +691,115 @@ class __multirange_old:
 				indexes[j] = self._start[j]
 				indexes[j-1] += self._step[j-1]
 		return
+
+
+class __multirange2(multirange):
+	"""
+	The recursive solution may be along the lines of this.
+	But, this algorithm doesn't work/isn't finished
+	"""
+
+	def __iter__(self):
+		inds = list(self._start)
+		yield tuple(inds)
+		while True:
+			yield tuple(self.nextInds(inds, -1))
+
+	def nextInds(self, inds, i):
+		print(inds, i)
+		if i <= -len(inds): return None
+		for j in range(inds[i], self._stop[i], self._step[i]):
+			N = self.nextInds(inds, i-1)
+			print(N)
+			if N == None:
+				inds[i] = j
+			else:
+				inds[i-1] = self._start[i-1]
+				return N
+
+
+def __isFloatable_old(string): 
+	"""Check if `string` is floatable
+
+	Check a string to see whether it can be converted into a float.
+	NOTE: this returns False for "NaN" and "Inf"
+	NOTE: this returns False for strings such as "1e10" which can be floated
+	
+	Parameters
+	----------
+	string : str
+		string to check
+
+	Returns
+	-------
+	bool
+		True if `string` can be converted, False if not.
+	
+	"""
+	raise DeprecationWarning("Inefficient method, see isFloatable() for the better version")
+	# (Upchurch, 2009) - Idea for splitting string, checking either side of decimal point
+	if string == "":
+		return False
+	
+	# Negative sign check
+	negIndex = string.find("-")
+	if negIndex != -1:
+		if string[:negIndex].lstrip() != "":
+			return False
+		if string.find("-", negIndex+1) != -1:
+			return False
+		string = string[negIndex+1:]
+
+	# Digits on either side of a '.'
+	part_list = string.split(".")
+	if len(part_list) > 2:
+		return False
+	for side in part_list:
+		if not side.isdigit():
+			return False
+	return True
+
+def __permuteOptions_new(iterOfIters):
+	"""Return a generator object for iterating through all possible permutations of an iterable of iterables
+		
+	iterOfIters is of the form:
+		[ value1, value2, value3, ...]
+	where
+		value1 = [option1, option2, ...]
+
+	This returns a generator object that iterates all possible lists of values, where the values can
+	be any of their respective options
+
+	Parameters
+	----------
+	iterOfIters : iterable
+		Iterable of iterables.
+	
+	Yields
+	------
+	list
+		a permutation of the given options
+	
+	"""
+	#I use a modified version in simpleUncertainty that only uses objects that have a len() attribute,
+	#That one is more efficient as it doesn't have to loop the first time
+	raise NotImplementedError("This does not work as intended - it requires indexing... What I need instead is a multienumerate()")
+	start = []
+	stop = []
+	if not isIterable(iterOfIters):
+		raise ValueError("<iterOfIters> must be iterable. An object of type '" + str(type(iterOfIters)) + "' is not.")
+	for options in iterOfIters:
+		start.append(0)
+		if not isIterable(options):
+			raise ValueError("each element of <iterOfIters> must be iterable. An object of type '" + str(type(options)) + "' is not.")
+		try:
+			stop.append(len(options))
+		except AttributeError:
+			length = 0
+			for elem in options: 
+				length += 1
+			stop.append(length)
+	for inds in multirange(start, stop):
+		raise NotImplementedError("This does not work as intended - it requires indexing... What I need instead is a multienumerate()")
+		yield [options[i] for (i,options) in zip(inds, listOfLists)]
+	return

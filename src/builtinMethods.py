@@ -1,22 +1,24 @@
 """A set of functions for builtins
 
-A previous iteration had these be classes, with the whole premise being to extend builtins with extra methods. However,
-in the long run this would be non-maintainable and has a lot of chances to clash with modules tring to use this. The
-superior solution is what was implemented here: a series of classes containing static (or class) methods that take
-builtins as arguments, and return builtins.
+A previous iteration had these be classes, with the whole premise being to
+extend builtins with extra methods. However, in the long run this would be
+non-maintainable and has a lot of chances to clash with modules tring to use
+this. The superior solution is what was implemented here: a series of classes
+containing static (or class) methods that take builtins as arguments, and
+return builtins.
 
 """
 
 
 
-####################################################### MODULES #######################################################
+################################### MODULES ###################################
 from os import stat
 import operator as op
 import random
 
 
 
-####################################################### CLASSES #######################################################
+################################## CLASSES #####################################
 class _AmbiguousMethods:
     """A set of ambiguous methods that List, Str etc. may use."""
 
@@ -70,18 +72,59 @@ class Iterable:
         return result
 
 
+class Str:
+    """Extra methods for :obj:`str` builtins"""
+
+    @staticmethod
+    def findAll(p, s):
+        """Yield all the positions of the pattern p in the string s.
+
+        Parameters
+        ----------
+        p : str
+            Pattern to search for.
+        s : str
+            String to search through.
+
+        Returns
+        -------
+        list
+            Returns [] if none are found. Intended to all easier for loop
+            integration than the original post.
+
+        Yields
+        ------
+        int
+            A position of the pattern `p` in `s`.
+        
+        Notes
+        -----
+        Could also be accomplished with regex
+
+        .. https://stackoverflow.com/questions/4664850/how-to-find-all-occurrences-of-a-substring
+
+        """
+        i = s.find(p)
+        if i == -1: return []
+        while i != -1:
+            yield i
+            i = s.find(p, i+1)
+
+
 class List(Iterable):
     """Extra methods for :obj:`list` builtins
     
-    This class does not have a constructor, and is intended to only be used as a static class for organising functions.
+    This class does not have a constructor, and is intended to only be used as
+    a static class for organising functions.
     """
 
     @staticmethod
     def pairJoin(a, b, operator=op.__add__, sep=None, *args, **kwargs):
         """Join two identical-length lists element-wise.
 
-        Returns a single object, which is the combination of each element as `operator(elemA, elemB, *args, **kwargs)`,
-        with optionally `separator` in between. 
+        Returns a single object, which is the combination of each element as
+        `operator(elemA, elemB, *args, **kwargs)`, with optionally `separator`
+        in between. 
         
         Parameters
         ----------
@@ -105,9 +148,11 @@ class List(Iterable):
         
         Notes
         -----
-        - Support for per-element operators and separators is not planned to be implemented.
-        - Support for *args and **kwargs will be dropped. It will be assumed that the user creates an appropriate
-          lambda function before setting it to be the `operator`.
+        - Support for per-element operators and separators is not planned to be
+          implemented.
+        - Support for `*args` and `**kwargs` will be dropped. It will be
+          assumed that the user creates an appropriate lambda function before
+          setting it to be the `operator`.
 
         """
         # CHECKS
@@ -133,7 +178,7 @@ class List(Iterable):
     
     @classmethod
     def convertElementType(cls, a, class_, allowSubLists=False):
-        """Convert every element of a list to type `cls`. 
+        """Convert every element of a list to type `class_`. 
         
         Parameters
         ----------
@@ -211,7 +256,8 @@ class List(Iterable):
         a : list
             List to rotate
         n : int
-            Number of places to rotate to the right. Negative indicates going left.
+            Number of places to rotate to the right. Negative indicates going
+            left.
         
         Returns
         -------
@@ -240,7 +286,8 @@ class List(Iterable):
         val : any
             Value to search for.
         key : :obj:`function`, optional
-            If not `None`, then each element is checked by `key(elem)==val` instead.
+            If not `None`, then each element is checked by `key(elem)==val`
+            instead.
         
         Returns
         -------
@@ -267,7 +314,8 @@ class List(Iterable):
         val : any
             Value to search for.
         key : :obj:`function`, optional
-            If not `None`, then each element is checked by `key(elem)==val` instead.
+            If not `None`, then each element is checked by `key(elem)==val`
+            instead.
         
         Returns
         -------

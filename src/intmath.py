@@ -2,12 +2,12 @@
 
 
 
-####################################################### MODULES #######################################################
+################################### MODULES ###################################
 import math
 
 
 
-###################################################### FUNCTIONS ######################################################
+################################## FUNCTIONS ##################################
 def factors(a): 
     """Return a sorted list of the factors of `a`."""
     fact_list = []
@@ -24,7 +24,8 @@ def primes(n, primeList=None):
     n : int
         Largest number to check for being prime
     primeList : :obj:`list` of :obj:`int`, optional
-        Can specify an already calculated (ordered) list of primes to extend it instead of starting from scratch.
+        Can specify an already calculated (ordered) list of primes to extend it
+        instead of starting from scratch.
     
     Returns
     -------
@@ -77,8 +78,9 @@ def modulo(x, m=None, range_=None):
     x : int
     m : int
     range_ : :obj:`tuple` of :obj:`int`, optional
-        If specified, `range` takes the form `(lower,upper)` and results in `x` being placed in that range, and being
-        x (modulo upper-lower). `m` is ignored if this is specified
+        If specified, `range` takes the form `(lower,upper)` and results in `x`
+        being placed in that range, and being x (modulo upper-lower). `m` is
+        ignored if this is specified.
     
     Results
     -------
@@ -86,11 +88,13 @@ def modulo(x, m=None, range_=None):
 
     Notes
     -----
-    Thought process for the logic: start from lower, or upper, then count the number of elements (include going down
-    as negative) then that is the number (mod range). This is then put back into the range by + lower
+    Thought process for the logic: start from lower, or upper, then count the
+    number of elements (include going down as negative) then that is the number
+    (mod range). This is then put back into the range by + lower
     modulus(-6, (1, 5)) = 4 because:
         `-6 -5 -4 -3 -2 -1 0 1 2 3 4 5`  (mod range) is
         ` 4  5  1  2  3  4 5 1 2 3 4 5`
+    
     """
     if range_ == None:
         y = x % m
