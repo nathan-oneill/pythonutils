@@ -1,5 +1,5 @@
 # Python Utils
-A collection of useful functions that I've developed (or found - with appropriate references), will eventually be unittested, and use semi-regularly.
+A collection of useful functions that I've developed (or found - with appropriate references), will eventually be unittested, and use semi-regularly. This also serves as a way for me to test out github automation.
 
 ## Included sub-modules
 - `uncertainty` (`unc`)
