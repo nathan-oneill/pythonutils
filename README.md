@@ -12,6 +12,13 @@ A collection of useful functions that I've developed (or found - with appropriat
 For now, see [this](https://stackoverflow.com/questions/16584552/how-to-state-in-requirements-txt-a-direct-github-source) Stack Overflow page.
 [This](https://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path) may also be of use if not installing directly, instead cloning the repo directly.
 
+pip direct installation: (recommended adding to a virtual environment instead of globally)
+
+```pip install git+git://github.com/nathan-oneill/pythonutils@main#egg=pythonutils-nathan-oneill```
+
+It can then be imported as `pythonutils`
+
+
 # Documentation Guide
 ## Do
 - Follow the [Sphinx Numpy format](https://numpydoc.readthedocs.io/en/latest/format.html). With exceptions:

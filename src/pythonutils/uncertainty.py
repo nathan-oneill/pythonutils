@@ -49,12 +49,12 @@ __author__ = "Nathan O'Neill"
 
 
 ################################### MODULES ###################################
-import math
-import os
-import assorted as asd
-import numpy as np
-import pandas as pd
+from pythonutils import assorted as asd
 import csv
+import math
+import numpy as np
+import os
+import pandas as pd
 
 
 

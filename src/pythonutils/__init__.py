@@ -16,13 +16,7 @@ Not finished yet. I may need a setup.py or something to indicate dependencies.
    (why the src/pythonutils though? Why not just src?)
 """
 
-__version__ = '0.1.0'
-__author__ = "Nathan O'Neill"
-
 
 
 ################################### MODULES ###################################
-import builtinMethods
-import intmath
-import assorted
-import uncertainty
+from pythonutils import builtinMethods, intmath, assorted, uncertainty

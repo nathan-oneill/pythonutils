@@ -3,11 +3,11 @@
 
 
 ################################### MODULES ###################################
+from types import FunctionType
+import functools
 import time
 import math
 import os
-import functools
-from types import FunctionType
 
 
 

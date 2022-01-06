@@ -12,9 +12,9 @@ return builtins.
 
 
 ################################### MODULES ###################################
-from os import stat
 import operator as op
 import random
+from os import stat
 
 
 
