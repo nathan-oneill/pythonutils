@@ -193,7 +193,7 @@ class multirange:
 	WARNING: At present this is far less efficient than using many for loops.
 	It should only be used when the number of required for loops is not known.
 
-    TODO: implement `__multirange_old` in CPython.
+	TODO: implement `__multirange_old` in CPython.
 	"""
 	
 	def __init__(self, start, stop=None, step=None):
@@ -341,7 +341,7 @@ class Wrapper(object):
 	"""
 	def __init__(self, wrapped_cls):
 		self._wrapped_cls = wrapped_cls
-        
+
 	def __getattr__(self, name:str, **kwargs):
 		# TODO: this should make a try-except for this class's attribtues
 		return getattr(self._wrapped_cls, name, **kwargs)
@@ -476,27 +476,27 @@ def permuteOptions(listOfLists):
 	return
 
 def walkFiles(dir, callback):
-    """Walk the files in a directory, calling 'callback' on each file.
+	"""Walk the files in a directory, calling 'callback' on each file.
 
-    Parameters
-    ----------
-    dir : str
-        Directory to search (relative or absolute)
-    callback : FunctionType
-        Used as `callback(filepath)` where each file's `filepath` is
-        `os.path.join(dir, filepath_relative_to_dir)`.
+	Parameters
+	----------
+	dir : str
+		Directory to search (relative or absolute)
+	callback : FunctionType
+		Used as `callback(filepath)` where each file's `filepath` is
+		`os.path.join(dir, filepath_relative_to_dir)`.
 	
-    """
-    for root, dirs, files in os.walk(dir):
-        for name in files:
-            callback(os.path.join(root, name))
-    return
+	"""
+	for root, dirs, files in os.walk(dir):
+		for name in files:
+			callback(os.path.join(root, name))
+	return
 
 
 
 ################################# DECORATORS ##################################
 def print_execution_time(func):
-    """decorator, prints the time it takes for the function to execute
+	"""decorator, prints the time it takes for the function to execute
 	
 	Parameters
 	----------
@@ -507,14 +507,14 @@ def print_execution_time(func):
 	function
 
 	"""
-    @functools.wraps(func)
-    def execution_time_wrapper(*args, **kwargs):
-        t0 = time.process_time()
-        returnVal = func(*args, **kwargs)
-        t1 = time.process_time()
-        print("{0} took {1:.3f} seconds to run".format(func.__name__, t1-t0))
-        return returnVal
-    return execution_time_wrapper
+	@functools.wraps(func)
+	def execution_time_wrapper(*args, **kwargs):
+		t0 = time.process_time()
+		returnVal = func(*args, **kwargs)
+		t1 = time.process_time()
+		print("{0} took {1:.3f} seconds to run".format(func.__name__, t1-t0))
+		return returnVal
+	return execution_time_wrapper
 
 def decorate_cls(*args):
 	"""Class decorator for function with parameters
@@ -530,7 +530,7 @@ def decorate_cls(*args):
 	Use case:
 	@dec(1,2,3)
 	class MyClass:
-    	myattr = 1
+		myattr = 1
 	
 	will set MyClass.myattr2 to [1,2,3]
 
@@ -576,7 +576,7 @@ class __multirange_old:
 	   * General efficiency
 	
 
-    TODO: implement THIS version in CPython. It should be much more efficient.
+	TODO: implement THIS version in CPython. It should be much more efficient.
 	"""
 
 	def __init__(self, start, stop=None, step=None, allowFloats=False):
@@ -595,7 +595,7 @@ class __multirange_old:
 			for j in range(start[1], stop[1], step[1]):
 				.
 				   .
-				      <code to execute in for loop goes here>
+					  <code to execute in for loop goes here>
 
 		Parameters
 		----------

@@ -989,7 +989,7 @@ class GeneralUncertainty(_Uncertainty_Prototype):
 
 	@classmethod
 	def estimateUncertainty(cls, f, uncertaintyArgs, precision=5, 
-						    test_domain_corners=False, fullDomainCheck=False,
+							test_domain_corners=False, fullDomainCheck=False,
 							useDynamicStepSize=True, *args, **kwargs):
 		"""Return the uncertainty object that results from passing the
 		`GeneralUncertainty` instances `uncertaintyArgs` through function `f`.
