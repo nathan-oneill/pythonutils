@@ -350,6 +350,10 @@ class _Uncertainty_Prototype:
 
 	def __rtruediv__(self, b): raise NotImplementedError
 
+	def __pow__(self, b): raise NotImplementedError
+
+	def __rpow__(self, b): raise NotImplementedError
+
 	def __iadd__(self, b): return self + b
 
 	def __isub__(self, b): return self - b
