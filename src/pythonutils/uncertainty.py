@@ -199,6 +199,47 @@ class _Uncertainty_Prototype:
 		if bool_ in [True, False]: cls.__autoOutputPrefix = bool_
 		else: raise ValueError("bool_ must be a bool, not type '{}'".format(type(bool_)))
 	
+	@classmethod
+	def _getOtherValueUnc(cls, other):
+		"""Return the appropriate `(value, unc)` tuple of `other`.
+		
+		Parameters
+		----------
+		other : any
+
+		Returns
+		-------
+		:obj:`tuple`
+			2-tuple of `(value, unc)` if `other` can be intepreted as a
+			measurement.
+		
+		Raises
+		------
+		TypeError
+			Indicates that `other` cannot be interpreted as a measurement.
+
+		Notes
+		-----
+		If the constructor is cleaned up/decently efficient then it may be
+		better to attempt to typecast to `cls` then extract `(val,unc)`.
+
+		It is undecided whether the stricter type(other) == cls is desired over
+		isinstance.
+
+		The ducktyping x==float(x), from crude testing, appears faster than the
+		old isinstance(x, (int,float)).
+		
+		"""
+		if isinstance(other, cls): return (other.val, other.unc)
+		
+		# Ducktyping 'is number'
+		try: floatOther = float(other)
+		except TypeError: 
+			raise NotImplementedError
+
+		if other == floatOther: return (other, 0)
+		raise NotImplementedError
+			
 
 	## PROPERTIES ##
 	@property
@@ -293,21 +334,31 @@ class _Uncertainty_Prototype:
 	
 	def __neg__(self): return type(self)(-self.val, self.unc)
 	
-	def __radd__(self, other): return self+other
+	def __add__(self, b): raise NotImplementedError
+
+	def __radd__(self, b): return self + b
+
+	def __sub__(self, b): raise NotImplementedError
 	
-	def __rsub__(self, other): return -self+other
+	def __rsub__(self, b): return -self + b
+
+	def __mul__(self, b): raise NotImplementedError
 	
-	def __rmul__(self, other): return self*other
+	def __rmul__(self, b): return self * b
 
-	def __iadd__(self, b): return self+b
+	def __truediv__(self, b): raise NotImplementedError
 
-	def __isub__(self, b): return self-b
+	def __rtruediv__(self, b): raise NotImplementedError
 
-	def __imul__(self, b): return self*b
+	def __iadd__(self, b): return self + b
 
-	def __itruediv__(self, b): return self/b
+	def __isub__(self, b): return self - b
 
-	def __ipow__(self, b): return self**b
+	def __imul__(self, b): return self * b
+
+	def __itruediv__(self, b): return self / b
+
+	def __ipow__(self, b): return self ** b
 
 
 	## METHODS ##
@@ -518,68 +569,45 @@ class CoherentUncertainty(_Uncertainty_Prototype):
 	## OPERATIONS ##
 	def __add__(self, other):
 		A, a = self.val, self.unc
-		if type(other) == type(self): #TODO: isinstance(other, type(self)) possibly better, but not sure if wanted?
-			B, b = other.val, other.unc
-		elif isinstance(other, (int, float)):
-			B, b = other, 0
-		else:
-			return NotImplemented
+		try: B, b = self._getOtherValueUnc(other)
+		except TypeError: return NotImplemented
 		return type(self)(A+B, a+b)
 	
 	def __sub__(self, other):
 		A, a = self.val, self.unc
-		if type(other) == type(self):
-			B, b = other.val, other.unc
-		elif isinstance(other, (int, float)):
-			B, b = other, 0
-		else:
-			return NotImplemented
+		try: B, b = self._getOtherValueUnc(other)
+		except TypeError: return NotImplemented
 		return type(self)(A-B, a+b)
 	
 	def __mul__(self, other):
 		A, a = self.val, self.unc
-		if type(other) == type(self):
-			B, b = other.val, other.unc
-		elif isinstance(other, (int, float)):
-			B, b = other, 0
-		else:
-			return NotImplemented
+		try: B, b = self._getOtherValueUnc(other)
+		except TypeError: return NotImplemented
 		if A*B < 0 and not self.suppress_IncoherenceMessages():
 			print("WARNING: {0}*{1} results in an incoherent uncertainty, but is not corrected in calculations".format(A,B))
 		return type(self)(A*B, B*a + A*b)
 	
 	def __truediv__(self, other):
 		A, a = self.val, self.unc
-		if type(other) == type(self):
-			B, b = other.val, other.unc
-		elif isinstance(other, (int, float)):
-			B, b = other, 0
-		else:
-			return NotImplemented
+		try: B, b = self._getOtherValueUnc(other)
+		except TypeError: return NotImplemented
 		if A*B < 0 and not self.suppress_IncoherenceMessages():
 			print("WARNING: {0}/{1} results in an incoherent uncertainty, but is not corrected in calculations".format(A,B))
 		return type(self)(A/B, a/B + A*b/(B**2))
 	
 	def __rtruediv__(self, other):
 		B, b = self.val, self.unc
-		if type(other) == type(self):
-			A, a = other.val, other.unc
-		elif isinstance(other, (int, float)):
-			A, a = other, 0
-		else:
-			return NotImplemented
+		try: A, a = self._getOtherValueUnc(other)
+		except TypeError: return NotImplemented
+
 		if A*B < 0 and not self.suppress_IncoherenceMessages():
 			print("WARNING: {0}/{1} results in an incoherent uncertainty, but is not corrected in calculations".format(A,B))
 		return type(self)(A/B, a/B + A*b/(B**2) )
 
 	def __pow__(self, other):
 		A, a = self.val, self.unc
-		if type(other) == type(self):
-			B, b = other.val, other.unc
-		elif isinstance(other, (int, float)):
-			B, b = other, 0
-		else:
-			return NotImplemented
+		try: B, b = self._getOtherValueUnc(other)
+		except TypeError: return NotImplemented
 
 		if A == 0:
 			#I suspect --> result is 0+-0... however, the uncertainty on A means that this could actually be a very tiny value below/above 0 (or massive, if |B|<<1)
@@ -597,14 +625,10 @@ class CoherentUncertainty(_Uncertainty_Prototype):
 		else:
 			return type(self)(X, X*(B*a/A + math.log(A)*b) )
 
-	def __rpow__(self, a):
+	def __rpow__(self, other):
 		B, b = self.val, self.unc
-		if type(a) == type(self):
-			A, a = a.val, a.unc
-		elif isinstance(a, (int, float)):
-			A, a = a, 0
-		else:
-			return NotImplemented
+		try: A, a = self._getOtherValueUnc(other)
+		except TypeError: return NotImplemented
 
 		if A == 0:
 			#I suspect --> result is 0+-0... however, the uncertainty on A means that this could actually be a very tiny value below/above 0 (or massive, if |B|<<1)
@@ -654,102 +678,41 @@ class IncoherentUncertainty(_Uncertainty_Prototype):
 	#	"""Note that this does not need a separate __init__ function"""
 	#	raise NotImplementedError()
 	
-	## CLASSMETHODS ##
-	@classmethod
-	def _getOther_ValueUnc(cls, other):
-		"""Possibly will become the standard method.
-		
-		Parameters
-		----------
-		other : any
-			Thing to get (val,unc) of
-		
-		Returns
-		-------
-		tuple
-
-		"""
-		raise NotImplementedError("Not used")
-
-		#Implementation 1
-		if type(other) == type(self):
-			A, a = other.val, other.unc
-		elif isinstance(other, (int, float)):
-			A, a = other, 0
-		else:
-			return NotImplemented
-		return (A, a)
-
-		#Implementation 2 - will allow more than just IncoherentUncertainty objects to interact... the thing is, I don't think I want that to happen
-		try:
-			A, a = other.val, other.unc
-		except AttributeError:
-			A, a = other, unc
-
-		if float(A) != A or float(a) != a:
-			return NotImplemented
-		return (A, a)
-
-
 	## OPERATIONS ##
 	def __add__(self, other):
 		A, a = self.val, self.unc
-		if type(other) == type(self):
-			B, b = other.val, other.unc
-		elif isinstance(other, (int, float)):
-			B, b = other, 0
-		else:
-			return NotImplemented
+		try: B, b = self._getOtherValueUnc(other)
+		except TypeError: return NotImplemented
 		return type(self)(A+B, math.sqrt(a**2 + b**2))
 	
 	def __sub__(self, other):
 		A, a = self.val, self.unc
-		if type(other) == type(self):
-			B, b = other.val, other.unc
-		elif isinstance(other, (int, float)):
-			B, b = other, 0
-		else:
-			return NotImplemented
+		try: B, b = self._getOtherValueUnc(other)
+		except TypeError: return NotImplemented
 		return type(self)(A-B, math.sqrt(a**2 + b**2))
 	
 	def __mul__(self, other):
 		A, a = self.val, self.unc
-		if type(other) == type(self):
-			B, b = other.val, other.unc
-		elif isinstance(other, (int, float)):
-			B, b = other, 0
-		else:
-			return NotImplemented
+		try: B, b = self._getOtherValueUnc(other)
+		except TypeError: return NotImplemented
 		return type(self)(A*B, math.sqrt((B*a)**2 + (A*b)**2))
 	
 	def __truediv__(self, other):
 		A, a = self.val, self.unc
-		if type(other) == type(self):
-			B, b = other.val, other.unc
-		elif isinstance(other, (int, float)):
-			B, b = other, 0
-		else:
-			return NotImplemented
+		try: B, b = self._getOtherValueUnc(other)
+		except TypeError: return NotImplemented
 		return type(self)(A/B, math.sqrt((a/B)**2 + (A*b/(B**2))**2))
 	
 	def __rtruediv__(self, other):
 		B, b = self.val, self.unc
-		if type(other) == type(self):
-			A, a = other.val, other.unc
-		elif isinstance(other, (int, float)):
-			A, a = other, 0
-		else:
-			return NotImplemented
+		try: A, a = self._getOtherValueUnc(other)
+		except TypeError: return NotImplemented
 		return type(self)(A/B, math.sqrt((a/B)**2 + (A*b/(B**2))**2))
 
 	def __pow__(self, other):
 		A, a = self.val, self.unc
-		if type(other) == type(self):
-			B, b = other.val, other.unc
-		elif isinstance(other, (int, float)):
-			B, b = other, 0
-		else:
-			return NotImplemented
+		try: B, b = self._getOtherValueUnc(other)
+		except TypeError: return NotImplemented
 
 		if A == 0:
 			#I suspect --> result is 0+-0... however, the uncertainty on A means that this could actually be a very tiny value below/above 0 (or massive, if |B|<<1)
@@ -764,14 +727,10 @@ class IncoherentUncertainty(_Uncertainty_Prototype):
 		else:
 			return type(self)(X, abs(X)*math.sqrt((B*a/A)**2 + (math.log(A)*b)**2))
 
-	def __rpow__(self, a):
+	def __rpow__(self, other):
 		B, b = self.val, self.unc
-		if type(a) == type(self):
-			A, a = a.val, a.unc
-		elif isinstance(a, (int, float)):
-			A, a = a, 0
-		else:
-			return NotImplemented
+		try: A, a = self._getOtherValueUnc(other)
+		except TypeError: return NotImplemented
 
 		if A == 0:
 			#I suspect --> result is 0+-0... however, the uncertainty on A means that this could actually be a very tiny value below/above 0 (or massive, if |B|<<1)
