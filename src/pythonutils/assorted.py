@@ -7,7 +7,6 @@ from types import FunctionType
 import functools
 import time
 import math
-import os
 
 
 
@@ -473,23 +472,6 @@ def permuteOptions(listOfLists):
 	stop = tuple([len(options) for options in listOfLists])
 	for inds in multirange(start, stop):
 		yield [options[i] for (i,options) in zip(inds, listOfLists)]
-	return
-
-def walkFiles(dir, callback):
-	"""Walk the files in a directory, calling 'callback' on each file.
-
-	Parameters
-	----------
-	dir : str
-		Directory to search (relative or absolute)
-	callback : FunctionType
-		Used as `callback(filepath)` where each file's `filepath` is
-		`os.path.join(dir, filepath_relative_to_dir)`.
-	
-	"""
-	for root, dirs, files in os.walk(dir):
-		for name in files:
-			callback(os.path.join(root, name))
 	return
 
 
