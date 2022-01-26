@@ -7,6 +7,7 @@ from types import FunctionType
 import functools
 import time
 import math
+import sys
 
 
 
@@ -291,6 +292,85 @@ class multirange:
 				range_index = -1
 		return
 
+
+class ProgressBar:
+	def __init__(self, message = '', barLen = 30, deleteOnEnded = False):
+		"""Print a progress bar to the CLI.
+
+		Initialising a ProgressBar prints the 0% complete bar, at which point
+		nothing should be printed to `stdout` until the progressbar is ended
+		by `.end()`. 
+
+		This can also be used in a `with` statement to handle ending it
+		automatically if errors occur.
+
+		Parameters
+		----------
+		status : str
+			Status message.
+		barLen : int
+			Number of displayed 'milestone' bars.
+		deleteOnEnded : bool
+			Remove the progressbar after `.end()` is called.
+		
+		Notes
+		-----
+		More additions: https://stackoverflow.com/questions/3173320/text-progress-bar-in-terminal-with-block-characters
+		Original inspiration: https://gist.github.com/vladignatyev/06860ec2040cb497f0f3
+
+		"""
+		self.barLen = barLen
+		self.message = message + ': ' if message else ''
+		self.deleteOnEnded = deleteOnEnded
+		self.update(0)
+		return
+	
+	def update(self, percentDone):
+		"""Update the progress bar
+		
+		Parameters
+		----------
+		percentDone : float
+			Percent value `0 <= percentDone <= 1`
+		
+		Notes
+		-----
+		I'm on the fence as to the strict 0 <= percentDone <= 1, It may be
+		better to 'soft-error' and allow percentages > 1 but just stop updating
+		the bar (but continue to update the displayed %). ~ This is meant to be
+		a logging tool, and not get in the way.
+
+		"""
+		if not (0 <= percentDone <= 1):
+			raise ValueError('percentDone must be a number between 0 and 1, inclusive.')
+		
+		filledBars = round(percentDone * self.barLen)
+		bar = '#' * filledBars + ' ' * (self.barLen - filledBars)
+
+		loggedString = '{0}[{1}] {2:.2%}\r'.format(self.message, bar, percentDone)
+		sys.stdout.write(loggedString)
+		sys.stdout.flush()
+		return
+	
+	def end(self):
+		"""Stop updating the progressbar."""
+		if self.deleteOnEnded:
+			# https://stackoverflow.com/questions/5419389/how-to-overwrite-the-previous-print-to-stdout-in-python
+			sys.stdout.write('\x1b[2K\r')
+		else:
+			sys.stdout.write('\n')
+		return
+	
+	def __enter__(self):
+		return self
+	
+	def __exit__(self, exc_type, exc_value, exc_traceback):
+		if exc_type is None:
+			self.end()
+		else:
+			# don't remove the progressbar as it could be useful
+			sys.stdout.write('\n')
+		return
 
 
 
