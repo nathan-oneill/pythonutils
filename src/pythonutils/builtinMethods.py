@@ -101,7 +101,8 @@ class Str:
 		-----
 		Could also be accomplished with regex
 
-		.. https://stackoverflow.com/questions/4664850/how-to-find-all-occurrences-of-a-substring
+		.. Copyright (c) 2015 u/AkiRoss. CC BY-SA 3.0 License. From 
+		   https://stackoverflow.com/questions/4664850/how-to-find-all-occurrences-of-a-substring
 
 		"""
 		i = s.find(p)
@@ -109,6 +110,7 @@ class Str:
 		while i != -1:
 			yield i
 			i = s.find(p, i+1)
+		return
 
 
 class List(Iterable):

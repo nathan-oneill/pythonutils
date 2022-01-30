@@ -316,8 +316,9 @@ class ProgressBar:
 		Notes
 		-----
 		More additions: https://stackoverflow.com/questions/3173320/text-progress-bar-in-terminal-with-block-characters
-		Original inspiration: https://gist.github.com/vladignatyev/06860ec2040cb497f0f3
 
+		.. Original inspiration: Copyright (c) 2016 Vladimir Ignatev. MIT
+		   License. From https://gist.github.com/vladignatyev/06860ec2040cb497f0f3
 		"""
 		self.barLen = barLen
 		self.message = message + ': ' if message else ''
