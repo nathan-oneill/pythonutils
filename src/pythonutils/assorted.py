@@ -306,7 +306,7 @@ class ProgressBar:
 
 		Parameters
 		----------
-		status : str
+		message : str
 			Status message.
 		barLen : int
 			Number of displayed 'milestone' bars.
