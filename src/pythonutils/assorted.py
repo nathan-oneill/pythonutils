@@ -3,7 +3,6 @@
 
 
 ################################### MODULES ###################################
-from multiprocessing.sharedctypes import Value
 from types import FunctionType
 import functools
 import time
