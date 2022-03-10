@@ -3,12 +3,13 @@
 
 
 ################################### MODULES ###################################
+from multiprocessing.sharedctypes import Value
 from types import FunctionType
 import functools
 import time
 import math
 import sys
-
+import numpy as np
 
 
 ################################## CLASSES ####################################
@@ -374,6 +375,55 @@ class ProgressBar:
 		return
 
 
+class NumpyArray:
+	"""Static class of helper functions for `np.ndarray`'s"""
+	@staticmethod
+	def extractPaddedSubArray(a, offset, padValue = 0):
+		"""Extract a padded sub array. Result has the same shape as input.
+		
+		One way to visualise what happens for an offset (1,1):
+			|-----|    |-----|       |-----|
+			| 1 2 |    | 1 2 |       | 4 0 |
+			|     | -> |  |--|--| -> |     |
+			| 3 4 |    | 3|4 |  |    | 0 0 |
+			|-----|    |--|--|--|    |-----|
+			              |     |
+						  |-----|
+		
+		Parameters
+		----------
+		a : np.ndarray
+			Array to extract from
+		offset : tuple
+			Offset the 'selection area' by this. `offset` must be the same
+			length as `a.shape`.
+		padValue : any
+			What value the empty spaces should take.
+		
+		Returns
+		-------
+		np.ndarray
+			Has the same shape as `a`
+		
+		Notes
+		-----
+		Possible optimisation: create np.full() array first, then assign a
+		sub array of it. (I just haven't wrapped my mind around it yet).
+
+		For a 2D example: https://github.com/nathan-oneill/game-of-life/blob/main/life.py
+		
+		"""
+		if len(offset) != len(a.shape):
+			raise ValueError('offset and a.shape must have the same length')
+		
+		# Get sub array
+		slices = [slice(max(off,0), min(off+s,s)) for (off,s) in zip(offset, a.shape)]
+		shifted = a[(...,*slices)] # Effectively a[*slices]
+
+		# Pad with `padValue`
+		pads = [(max(-off,0), max(off,0)) for off in offset]
+		shifted = np.pad(shifted, pads, constant_values = padValue)
+		return shifted
 
 
 class iterOverIterables:
@@ -781,47 +831,6 @@ class __multirange2(multirange):
 				return N
 
 
-def __isFloatable_old(string): 
-	"""Check if `string` is floatable
-
-	Check a string to see whether it can be converted into a float.
-	NOTE: this returns False for "NaN" and "Inf"
-	NOTE: this returns False for strings such as "1e10" which can be floated
-	
-	Parameters
-	----------
-	string : str
-		string to check
-
-	Returns
-	-------
-	bool
-		True if `string` can be converted, False if not.
-	
-	"""
-	raise DeprecationWarning("Inefficient method, see isFloatable() for the better version")
-	# (Upchurch, 2009) - Idea for splitting string, checking either side of decimal point
-	if string == "":
-		return False
-	
-	# Negative sign check
-	negIndex = string.find("-")
-	if negIndex != -1:
-		if string[:negIndex].lstrip() != "":
-			return False
-		if string.find("-", negIndex+1) != -1:
-			return False
-		string = string[negIndex+1:]
-
-	# Digits on either side of a '.'
-	part_list = string.split(".")
-	if len(part_list) > 2:
-		return False
-	for side in part_list:
-		if not side.isdigit():
-			return False
-	return True
-
 def __permuteOptions_new(iterOfIters):
 	"""Return a generator object for iterating through all possible permutations of an iterable of iterables
 		
@@ -866,3 +875,10 @@ def __permuteOptions_new(iterOfIters):
 		raise NotImplementedError("This does not work as intended - it requires indexing... What I need instead is a multienumerate()")
 		yield [options[i] for (i,options) in zip(inds, listOfLists)]
 	return
+
+
+if __name__ == '__main__':
+	x = np.arange(9).reshape((3,3))
+	print(x)
+	print(NumpyArray.extractPaddedSubArray(x, (1,-2)))
+	print(x.dtype)

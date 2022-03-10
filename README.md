@@ -39,4 +39,5 @@ If the git repo is cloned locally first, then you can use:
 - Continuous-integration unittests
 - Continuous-integration code coverage with [codecov](https://github.com/apps/codecov)
 - Continuous-integration pylint?
--  Replace installation `@main` with `/versions/...` once versions are started being tagged.
+- Replace installation `@main` with `/versions/...` once versions are started being tagged.
+- for better developing: https://stackoverflow.com/questions/25583756/using-absolute-import-while-in-developing-python-modules#answer-65855396
